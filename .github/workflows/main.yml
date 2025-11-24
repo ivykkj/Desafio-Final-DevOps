@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build_docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Construir a Imagem Docker
+        run: docker build -t minha-api . 
+        
+      - name: Confirmar Build
+        run: echo "Imagem Docker construída com sucesso!"
+
+  test_application:
+    name: Run Unit Tests
+    needs: build_docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Instalar Dependências
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Executar Testes Unitários
+        run: python -m unittest test_app.py
+
+  deploy_render:
+    name: Deploy to Render
+    needs: test_application
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' 
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_CAUAN }}
+          echo "Deploy solicitado ao Render!"
