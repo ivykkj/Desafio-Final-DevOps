@@ -29,7 +29,7 @@ class APITestCase(unittest.TestCase):
         self.assertEqual(response.json, {"message": "Protected route"})
 
     def test_swagger_ui_loads(self):
-        response = self.client.get('/swagger')
+        response = self.client.get('/swagger/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Swagger UI', response.data)
 
